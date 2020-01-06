@@ -1,1 +1,8 @@
+pkg/
+.vscode/
+debug
+public/upload/
+server
+.exe
+node_modules/
 /.idea
