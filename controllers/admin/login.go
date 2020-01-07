@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/astaxie/beego"
 	"go-blog/models/admin"
 	"go-blog/utils"
@@ -23,6 +24,7 @@ func (ctl *LoginController) Login() {
 	password := ctl.GetString("password")
 
 	password = utils.PasswordMD5(password,username)
+	fmt.Println(password)
 
 	response := make(map[string]interface{})
 
