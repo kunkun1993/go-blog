@@ -153,40 +153,36 @@ func (c *ArticleController) Detail() {
 	//conn.Send()
 	r,_ := redis.Bytes(conn.Do("GET",redisKey))
 	fmt.Println("1111",r)
-	err := json.Unmarshal([]byte(r), &article)
+	ok := json.Unmarshal([]byte(r), &article)
 	fmt.Println("222",article)
-	if err != nil {
+	if ok != nil {
 		//da := string(r.([]byte))
 
 		c.Data["Data"] = article
-		c.Menu()
-		c.Layout()
-		c.TplName = "home/detail.html"
+	} else {
+		// 基础数据
+		o := orm.NewOrm()
+
+		var articles []*admin.Article
+		qs := o.QueryTable(article)
+		err := qs.Filter("id", id).RelatedSel().One(&articles)
+		if err != nil {
+			c.Abort("404")
+		}
+
+		/*c.Data["json"]= &articles
+		c.ServeJSON()
+		c.StopRun()*/
+		fmt.Println("333",&articles[0])
+		//存入缓存
+		data,_ :=json.Marshal(&articles[0])
+		conn.Send("SET",redisKey,string(data))
+
+		c.Data["Data"] = &articles[0]
 	}
 
 
 
-
-	// 基础数据
-	o := orm.NewOrm()
-
-	var articles []*admin.Article
-	qs := o.QueryTable(article)
-	err := qs.Filter("id", id).RelatedSel().One(&articles)
-	if err != nil {
-		c.Abort("404")
-	}
-
-	/*c.Data["json"]= &articles
-	c.ServeJSON()
-	c.StopRun()*/
-	fmt.Println("333",&articles[0])
-	//存入缓存
-	data,_ :=json.Marshal(&articles[0])
-	conn.Send("SET",redisKey,string(data))
-
-	c.Data["Data"] = &articles[0]
-	
 	c.Menu()
 	c.Layout()
 	c.TplName = "home/detail.html"
