@@ -8,6 +8,7 @@ import (
 	"go-blog/utils"
 	"strconv"
 	"time"
+	"go-blog/models/myredis"
 )
 
 type ArticleController struct {
@@ -140,6 +141,12 @@ func (c *ArticleController) List() {
 func (c *ArticleController) Detail() {
 
 	id := c.Ctx.Input.Param(":id")
+
+	//添加redis缓存
+	conn := myredis.Conn()
+	defer conn.Close()
+	conn.Send("SET","test",111)
+	
 	// 基础数据
 	o := orm.NewOrm()
 	article := new(admin.Article)
