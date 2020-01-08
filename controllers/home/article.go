@@ -1,14 +1,17 @@
 package home
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
+	"github.com/gomodule/redigo/redis"
 	"go-blog/models/admin"
+	"go-blog/models/myredis"
 	"go-blog/utils"
 	"strconv"
 	"time"
-	"go-blog/models/myredis"
 )
 
 type ArticleController struct {
@@ -141,15 +144,34 @@ func (c *ArticleController) List() {
 func (c *ArticleController) Detail() {
 
 	id := c.Ctx.Input.Param(":id")
-
+	article := new(admin.Article)
 	//添加redis缓存
 	conn := myredis.Conn()
 	defer conn.Close()
-	conn.Send("SET","test",111)
-	
+	redisKey := "article::detail::" + id
+
+	//conn.Send()
+	if r, err := redis.Bytes(conn.Do("GET",redisKey));err != nil {
+		c.Abort("404")
+	} else {
+		fmt.Println("1111",r)
+		err := json.Unmarshal([]byte(r), &article)
+		fmt.Println("222",article)
+		if err != nil {
+			//da := string(r.([]byte))
+
+			c.Data["Data"] = article
+			c.Menu()
+			c.Layout()
+			c.TplName = "home/detail.html"
+		}
+	}
+
+
+
 	// 基础数据
 	o := orm.NewOrm()
-	article := new(admin.Article)
+
 	var articles []*admin.Article
 	qs := o.QueryTable(article)
 	err := qs.Filter("id", id).RelatedSel().One(&articles)
@@ -160,6 +182,10 @@ func (c *ArticleController) Detail() {
 	/*c.Data["json"]= &articles
 	c.ServeJSON()
 	c.StopRun()*/
+	fmt.Println("333",&articles[0])
+	//存入缓存
+	data,_ :=json.Marshal(&articles[0])
+	conn.Send("SET",redisKey,string(data))
 
 	c.Data["Data"] = &articles[0]
 	
