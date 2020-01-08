@@ -152,7 +152,7 @@ func (c *ArticleController) Detail() {
 
 	//conn.Send()
 	if r, err := redis.Bytes(conn.Do("GET",redisKey));err != nil {
-		fmt.Println(err)
+		fmt.Println(444,err)
 		c.Abort("404")
 	} else {
 		fmt.Println("1111",r)
