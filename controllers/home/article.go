@@ -151,22 +151,19 @@ func (c *ArticleController) Detail() {
 	redisKey := "article::detail::" + id
 
 	//conn.Send()
-	if r, err := redis.Bytes(conn.Do("GET",redisKey));err != nil {
-		fmt.Println(444,err)
-		c.Abort("404")
-	} else {
-		fmt.Println("1111",r)
-		err := json.Unmarshal([]byte(r), &article)
-		fmt.Println("222",article)
-		if err != nil {
-			//da := string(r.([]byte))
+	r,_ := redis.Bytes(conn.Do("GET",redisKey))
+	fmt.Println("1111",r)
+	err := json.Unmarshal([]byte(r), &article)
+	fmt.Println("222",article)
+	if err != nil {
+		//da := string(r.([]byte))
 
-			c.Data["Data"] = article
-			c.Menu()
-			c.Layout()
-			c.TplName = "home/detail.html"
-		}
+		c.Data["Data"] = article
+		c.Menu()
+		c.Layout()
+		c.TplName = "home/detail.html"
 	}
+
 
 
 
